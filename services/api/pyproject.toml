@@ -1,0 +1,30 @@
+[project]
+name = "nvidia-nemotron-genblaze-b2-api"
+version = "0.2.0"
+description = "FastAPI service that drives a Genblaze pipeline keyed off NVIDIA Nemotron 3 Nano Omni's multimodal perception, fanning out to image / TTS / music generation with all assets persisted to Backblaze B2."
+requires-python = ">=3.11"
+dependencies = [
+  "genblaze-core>=0.2.8,<0.3",
+  "genblaze-s3>=0.3,<0.4",
+  "genblaze-nvidia[chat]>=0.2.1,<0.3",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "pydantic-settings>=2.4",
+  "python-multipart>=0.0.9",
+  "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.6",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

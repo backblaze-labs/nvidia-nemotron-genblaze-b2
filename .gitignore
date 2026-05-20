@@ -1,0 +1,33 @@
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.pnpm-store/
+# next-env.d.ts is auto-generated on first `next build` / `next dev`.
+next-env.d.ts
+
+# Genblaze step cache
+.cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
