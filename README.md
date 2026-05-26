@@ -6,6 +6,8 @@ clip, or short video; Nemotron sees, hears, and reasons; Genblaze fans
 out to image, narration, and music generation; every artifact persists
 to Backblaze B2.
 
+![nvidia-nemotron-genblaze-b2 UI](./nvidia-nemotron-genblaze-b2.png)
+
 ```
 upload (image | audio | video) ──> POST /uploads (B2-staged, sha256'd)
    │
@@ -50,7 +52,7 @@ cp .env.example .env
 
 The repo uses a **single `.env` file at the repo root**. The FastAPI
 service reads it through `services/api/app/config.py` (looks at
-`./.env` then `../../.env`); the Next.js proxy has a `127.0.0.1:8000`
+`./.env` then `../../.env`); the Next.js proxy has a `127.0.0.1:8787`
 default and only needs `NEMOTRON_API_URL` if you're pointing at a
 non-local API.
 
@@ -61,14 +63,14 @@ pnpm install               # first time: install web deps
 pnpm dev                   # boots api (uvicorn) + web (next) concurrently
 ```
 
-Open <http://localhost:3000>, drop in an image / audio / video, and
+Open <http://localhost:3737>, drop in an image / audio / video, and
 click **Generate briefing**.
 
 If you'd rather run them in separate terminals:
 
 ```bash
-pnpm dev:api               # uvicorn on 127.0.0.1:8000
-pnpm dev:web               # next on :3000
+pnpm dev:api               # uvicorn on 127.0.0.1:8787
+pnpm dev:web               # next on :3737
 ```
 
 ## Architecture
@@ -96,7 +98,7 @@ See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the layer diagram. TL;DR:
 | -------- | --------------------------------------------------- | ---------------------------- |
 | Chat     | `nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`     | `NEMOTRON_CHAT_MODEL`        |
 | Image    | `black-forest-labs/flux.1-schnell`                  | `NEMOTRON_IMAGE_MODEL`       |
-| TTS      | `nvidia/riva-tts`                                   | `NEMOTRON_TTS_MODEL`         |
+| TTS      | `nvidia/magpie-tts-multilingual`                    | `NEMOTRON_TTS_MODEL`         |
 | Music    | `nvidia/fugatto`                                    | `NEMOTRON_MUSIC_MODEL`       |
 | Video    | `nvidia/cosmos-2.0-diffusion-text2world` (opt-in)   | `NEMOTRON_VIDEO_MODEL`       |
 

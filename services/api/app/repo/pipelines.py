@@ -71,10 +71,10 @@ def _artifact_dir() -> Path:
 def backend() -> S3StorageBackend:
     """B2 backend singleton. Explicit kwargs bypass the B2_APP_KEY env fallback.
 
-    `for_backblaze(preflight=True)` (default in genblaze-s3 0.3.0) verifies
-    the bucket/region eagerly and raises `StorageError` on auth/region
-    failure — so the first call to `backend()` is the boot preflight. The
-    FastAPI lifespan invokes us once and treats failures as warn-not-fatal.
+    `for_backblaze(preflight=True)` verifies bucket/region eagerly and raises
+    `StorageError` on auth/region failure — first call here is the boot
+    preflight. Lifespan treats failures as warn-not-fatal. genblaze-s3 0.3.2+
+    names the correct region on `B2_REGION` mismatch via a cross-region probe.
     """
     return S3StorageBackend.for_backblaze(
         settings.b2_bucket_name,
@@ -86,7 +86,11 @@ def backend() -> S3StorageBackend:
 
 
 def sink() -> ObjectStorageSink:
-    """Per-run sink. HIERARCHICAL keys yield clean nemotron/<run-id>/... layout."""
+    """Per-run sink. HIERARCHICAL keys yield clean nemotron/<run-id>/... layout.
+
+    Default `URLPolicy.AUTO` (0.3.2+) logs a one-time benign WARN when
+    `backend.public_url_base` is unset, as it is here.
+    """
     return ObjectStorageSink(
         backend(), prefix=PREFIX, key_strategy=KeyStrategy.HIERARCHICAL
     )
@@ -157,10 +161,15 @@ def build_media_pipeline(
     include_video: bool,
     video_model: str | None,
 ) -> Pipeline:
-    """Stage B: 3x image + 3x narration (max_concurrency=3) + 1x music + opt video."""
+    """Stage B: 3x image + 3x narration (max_concurrency=3) + 1x music + opt video.
+
+    `preflight=False` is deliberate: genblaze-core 0.3.0 turned preflight on
+    by default, and a single retired slug would block the whole fan-out —
+    see docs/features/video-best-effort.md for the rationale.
+    """
     api_key = settings.nvidia_api_key
     out_dir = _artifact_dir()
-    p = _attach_observability(Pipeline(PIPELINE_NAME, max_concurrency=3))
+    p = _attach_observability(Pipeline(PIPELINE_NAME, max_concurrency=3, preflight=False))
     for ch in spec.takeaways:  # 3x illustration
         # FLUX.1 Schnell on NIM is guidance-distilled (must run at cfg_scale=0)
         # and rejects `aspect_ratio` outright — it produces 1024×1024 only. We

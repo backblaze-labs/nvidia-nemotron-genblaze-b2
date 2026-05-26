@@ -23,7 +23,8 @@ specific to this sample.
   inside `app/repo/`.
 - Wiring a user-uploaded asset to the chat step? Use
   `external_inputs=[asset]` on `Pipeline.step()` (NOT `inputs=` —
-  0.2.7 raises loudly). Always populate `Asset.sha256`.
+  `Pipeline.step()` raises on the wrong kwarg). Always populate
+  `Asset.sha256`.
 
 ## Tests
 

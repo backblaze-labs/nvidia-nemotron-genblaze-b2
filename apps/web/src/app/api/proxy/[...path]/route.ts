@@ -11,7 +11,7 @@ import { NextRequest } from "next/server";
 // many macOS/Linux setups, but uvicorn binds 127.0.0.1 by default — the
 // IPv6 attempt loses ECONNREFUSED before the v4 fallback kicks in. Pinning
 // the literal sidesteps the whole ordeal.
-const API_URL = process.env.NEMOTRON_API_URL ?? "http://127.0.0.1:8000";
+const API_URL = process.env.NEMOTRON_API_URL ?? "http://127.0.0.1:8787";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";

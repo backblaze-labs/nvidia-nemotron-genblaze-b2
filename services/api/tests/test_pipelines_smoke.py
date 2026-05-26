@@ -39,7 +39,7 @@ def test_media_pipeline_builds_with_three_takeaways() -> None:
     pipe = build_media_pipeline(
         spec,
         image_model="black-forest-labs/flux.1-schnell",
-        tts_model="nvidia/riva-tts",
+        tts_model="nvidia/magpie-tts-multilingual",
         music_model="nvidia/fugatto",
         include_video=False,
         video_model=None,
@@ -66,7 +66,7 @@ def test_media_pipeline_appends_video_when_requested() -> None:
     pipe = build_media_pipeline(
         spec,
         image_model="black-forest-labs/flux.1-schnell",
-        tts_model="nvidia/riva-tts",
+        tts_model="nvidia/magpie-tts-multilingual",
         music_model="nvidia/fugatto",
         include_video=True,
         video_model="nvidia/cosmos-2.0-diffusion-text2world",
@@ -109,6 +109,39 @@ def test_briefing_spec_pipeline_attaches_external_input() -> None:
     assert deferred.external_inputs == [asset]
 
 
+def test_media_pipeline_disables_preflight_for_best_effort_semantics() -> None:
+    """Regression guard for Stage B's `preflight=False` carve-out.
+
+    Full rationale lives in `docs/features/video-best-effort.md` — TL;DR: a
+    retired user-overridden slug would otherwise blank the image + music
+    fan-out before any step ran. Assertion reads `_preflight` because
+    genblaze-core 0.3.x ships no public getter; revisit if upstream adds one.
+    """
+    from app.repo.pipelines import build_media_pipeline
+    from app.types.api import BriefingSpec, Takeaway
+
+    spec = BriefingSpec(
+        title="T", summary="A summary.",
+        takeaways=[
+            Takeaway(headline=f"H{i}", illustration_prompt=f"prompt {i}",
+                     narration=f"narration body {i} long enough")
+            for i in range(3)
+        ],
+        music_prompt="ambient",
+    )
+    pipe = build_media_pipeline(
+        spec,
+        image_model="black-forest-labs/flux.1-schnell",
+        tts_model="nvidia/magpie-tts-multilingual",
+        music_model="nvidia/fugatto",
+        include_video=False,
+        video_model=None,
+    )
+    # `getattr` defensively so an SDK rename surfaces as a clear "missing
+    # attribute" message rather than an opaque `AttributeError` traceback.
+    assert getattr(pipe, "_preflight", None) is False  # noqa: SLF001
+
+
 def test_briefing_request_validates() -> None:
     """BriefingRequest enforces that input_asset_url is provided."""
     import pydantic
@@ -142,14 +175,34 @@ def test_briefing_spec_validates_takeaway_count() -> None:
                      music_prompt="m m m m")
 
 
-def test_nvidia_providers_expose_list_models() -> None:
-    """`BaseProvider.list_models()` discovery — used by `/models`."""
+def test_nvidia_providers_expose_model_families() -> None:
+    """`/models` endpoint surfaces — `discover_models()` for NATIVE chat,
+    `ModelFamily.example_slugs` for PARTIAL image/audio/video.
+
+    Chat is NATIVE: its catalog comes from `/v1/models` at runtime via
+    `discover_models()`. The discriminator is the `DiscoverySupport` enum —
+    pinning it here guards against the silent fallback-to-empty regression
+    that occurs if the enum identity check in `app.main.models()` drifts
+    (e.g., string-suffix matching against `str(enum)` would never match
+    because `DiscoverySupport.NATIVE.value == "native"`).
+
+    PARTIAL providers ship a curated short-list per family that the
+    endpoint enumerates when discovery is offline.
+    """
+    from genblaze_core.providers import DiscoverySupport
+
     from app.repo.pipelines import nvidia_providers
 
     providers = nvidia_providers()
-    for modality in ("chat", "image", "audio", "video"):
-        ids = [m.model_id for m in providers[modality].list_models()]
-        assert ids, f"{modality} provider returned empty list_models()"
+    assert providers["chat"].discovery_support is DiscoverySupport.NATIVE
+    for modality in ("image", "audio", "video"):
+        assert providers[modality].discovery_support is DiscoverySupport.PARTIAL
+        slugs = [
+            ex
+            for family in providers[modality].models.families
+            for ex in family.example_slugs
+        ]
+        assert slugs, f"{modality} provider exposes no family example_slugs"
 
 
 def test_pipeline_estimated_cost_is_decimal_or_none() -> None:
@@ -177,7 +230,7 @@ def test_pipeline_estimated_cost_is_decimal_or_none() -> None:
     pipe = build_media_pipeline(
         spec,
         image_model="black-forest-labs/flux.1-schnell",
-        tts_model="nvidia/riva-tts",
+        tts_model="nvidia/magpie-tts-multilingual",
         music_model="nvidia/fugatto",
         include_video=False,
         video_model=None,

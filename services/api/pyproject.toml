@@ -4,9 +4,13 @@ version = "0.2.0"
 description = "FastAPI service that drives a Genblaze pipeline keyed off NVIDIA Nemotron 3 Nano Omni's multimodal perception, fanning out to image / TTS / music generation with all assets persisted to Backblaze B2."
 requires-python = ">=3.11"
 dependencies = [
-  "genblaze-core>=0.2.8,<0.3",
-  "genblaze-s3>=0.3,<0.4",
-  "genblaze-nvidia[chat]>=0.2.1,<0.3",
+  # 0.3.x preflight rationale: docs/features/video-best-effort.md.
+  "genblaze-core>=0.3.2,<0.4",
+  # 0.3.2 floor: better B2_REGION misconfig errors via for_backblaze()'s
+  # 403→region-probe path (the only 0.3.2 surface this sample actually hits).
+  "genblaze-s3>=0.3.2,<0.4",
+  # No 0.3.x patch shipped on this connector at time of pin; stays at floor.
+  "genblaze-nvidia[chat]>=0.3,<0.4",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
   "pydantic-settings>=2.4",

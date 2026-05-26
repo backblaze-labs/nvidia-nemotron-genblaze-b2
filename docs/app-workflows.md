@@ -69,13 +69,16 @@ The completed step's asset carries the JSON text in
 ## 4. Stage B — Genblaze fans out media generation
 
 `build_media_pipeline(spec, ...)` returns a second
-`Pipeline("nvidia-nemotron-genblaze-b2", max_concurrency=3)` with
-statically rendered prompts:
+`Pipeline("nvidia-nemotron-genblaze-b2", max_concurrency=3,
+preflight=False)` with statically rendered prompts. Stage B disables
+the new genblaze-core 0.3.0 preflight on purpose — see
+[`video-best-effort.md`](features/video-best-effort.md) for the
+rationale.
 
 | step idx | provider              | model                                  | prompt source                      |
 | -------- | --------------------- | -------------------------------------- | ---------------------------------- |
 | 0..2     | `NvidiaImageProvider` | `black-forest-labs/flux.1-schnell`     | `takeaways[i].illustration_prompt` |
-| 3..5     | `NvidiaAudioProvider` | `nvidia/riva-tts`                      | `takeaways[i].narration`           |
+| 3..5     | `NvidiaAudioProvider` | `nvidia/magpie-tts-multilingual`       | `takeaways[i].narration`           |
 | 6        | `NvidiaAudioProvider` | `nvidia/fugatto`                       | `music_prompt`                     |
 | 7?       | `NvidiaVideoProvider` | `nvidia/cosmos-2.0-diffusion-text2world` | `recommended_video_prompt` (best-effort) |
 

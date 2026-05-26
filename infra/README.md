@@ -45,7 +45,7 @@ lifecycle config or by setting it manually in the B2 UI.
 The sample's UI loads chapter assets from B2 via `<img src={url}>` /
 `<audio src={url}>`. For a private bucket served via presigned URLs,
 no CORS rules are needed. For a public bucket, add a CORS rule that
-allows `GET` from your dev origin (`http://localhost:3000`) and your
+allows `GET` from your dev origin (`http://localhost:3737`) and your
 production origin.
 
 `b2-doctor` flags `allowedOrigins: ["*"]` as a warning — use specific

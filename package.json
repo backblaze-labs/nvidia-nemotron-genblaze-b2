@@ -4,8 +4,8 @@
   "scripts": {
     "dev": "concurrently --names web,api --prefix-colors blue,green --kill-others-on-fail \"pnpm dev:web\" \"pnpm dev:api\"",
     "dev:web": "pnpm --filter @nvidia-nemotron-genblaze-b2/web dev",
-    "dev:api": "cd services/api && uv run uvicorn app.main:app --host 127.0.0.1 --port 8000",
-    "dev:api:reload": "cd services/api && uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
+    "dev:api": "cd services/api && uv run uvicorn app.main:app --host 127.0.0.1 --port 8787",
+    "dev:api:reload": "cd services/api && uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8787",
     "build": "pnpm --filter @nvidia-nemotron-genblaze-b2/web build",
     "lint": "pnpm --filter @nvidia-nemotron-genblaze-b2/web lint",
     "lint:api": "cd services/api && uv run ruff check app/ tests/",

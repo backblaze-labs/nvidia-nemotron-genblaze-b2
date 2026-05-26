@@ -118,28 +118,28 @@ wheels = [
 
 [[package]]
 name = "genblaze-core"
-version = "0.2.8"
+version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pillow" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f8/ad/770519efc494384d634ee6457055e1b945517000fbde45b072b0297e38f9/genblaze_core-0.2.8.tar.gz", hash = "sha256:9e35cf656e8fa397825583983ed7a2cf664ae9995ad6c6cf847dcdf36e59a908", size = 279726, upload-time = "2026-04-30T18:30:55.478Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/65/9be769da31fcba42b9cb5300904762059a34a67a1ce3209ceca19ffc486f/genblaze_core-0.3.2.tar.gz", hash = "sha256:56fb37f2f30fb3f911d3537abed0222e6e0b77413dbddebc13a758df73b7f5fa", size = 335844, upload-time = "2026-05-26T17:14:48.019Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/07/63a456067066ad98ecf410cb528085d2c58213ec1c79468268447f5222f1/genblaze_core-0.2.8-py3-none-any.whl", hash = "sha256:8d15aaf5d77f66de2a876905e4fd9521792b810a6673016396804e8a438f7031", size = 203405, upload-time = "2026-04-30T18:30:54.032Z" },
+    { url = "https://files.pythonhosted.org/packages/52/45/68436854232b63f0dda5a7267b8cb6993acae3846de3cd86175e9aca61a0/genblaze_core-0.3.2-py3-none-any.whl", hash = "sha256:08827906115caa681bb5ecf7a43e8fc30353eda8f031c00d9f3afcb272d45679", size = 238310, upload-time = "2026-05-26T17:14:46.623Z" },
 ]
 
 [[package]]
 name = "genblaze-nvidia"
-version = "0.2.1"
+version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "genblaze-core" },
     { name = "httpx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0d/b7/4891d4a394353be5eccab01dd6ddcae160eb21ed9fcda5e8a020da8a7ebb/genblaze_nvidia-0.2.1.tar.gz", hash = "sha256:3545c62bd65f971b981a19025c6b1a216b45a3ee33ba6759575f03c37bfca4ea", size = 32353, upload-time = "2026-04-28T20:34:30.557Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/1a/29faf75de625e606d369d869ac03aeb5fb87fb394060ae5d9ed98cb31791/genblaze_nvidia-0.3.0.tar.gz", hash = "sha256:7f60a08573a58aaff1dc119d777f12317c33d878042c7000eeb95cce7150f461", size = 39140, upload-time = "2026-05-20T16:55:45.436Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/d4/66835bf515b5ab06adc39c7a526f81d1f493e698b006bf270f7d9e416b5b/genblaze_nvidia-0.2.1-py3-none-any.whl", hash = "sha256:1e2275b8b97bb0a5c3ad63c7f7cd30d90ee477f44d8d2c608947d6afa4faaaa8", size = 33071, upload-time = "2026-04-28T20:34:29.675Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/f9/cabf2322d2c0d87708bffebd582947e138d8489f00179ca72409743a79e2/genblaze_nvidia-0.3.0-py3-none-any.whl", hash = "sha256:98c59abc794ff2a24e289a6a296297b1ea825b20f62a4844a7bdf688fb80fd15", size = 37475, upload-time = "2026-05-20T16:55:43.731Z" },
 ]
 
 [package.optional-dependencies]
@@ -149,15 +149,15 @@ chat = [
 
 [[package]]
 name = "genblaze-s3"
-version = "0.3.0"
+version = "0.3.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boto3" },
     { name = "genblaze-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/57/7c13b63e012283e4d7c276215ae536840531ca1d1fb1323f36d802a6bbc3/genblaze_s3-0.3.0.tar.gz", hash = "sha256:54f645cfade5b3a80c3d669efb178c8101c55b572baed04364f3d874f97d5e8d", size = 66265, upload-time = "2026-04-30T18:35:28.777Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4c/68/31a6c0a42dcf3b50abd9a65df55893bd192a04de8ce0781ba5db49abab13/genblaze_s3-0.3.2.tar.gz", hash = "sha256:a5bb7d4ccd2c803eaf915b690423cdafb699432070806a21122e4b8ce19c92bd", size = 74002, upload-time = "2026-05-26T17:15:22.379Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8e/70/c50f9d1431ebf3e5385a0fd6f31ec509dd1abc8b4d1c2ae28f43bca5162e/genblaze_s3-0.3.0-py3-none-any.whl", hash = "sha256:8bc506babffdba28db0aa378705509eabc5069c404e23b7bebb0a4236334be77", size = 40514, upload-time = "2026-04-30T18:35:27.814Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/fc/1d46456022edb4b6ea2de1ca987427ac0cd1ab0f68463fd9b81786d9ef28/genblaze_s3-0.3.2-py3-none-any.whl", hash = "sha256:c40c39f1e03190b986ce343215b84942707a7251e6fc678d812852b6fa390109", size = 42949, upload-time = "2026-05-26T17:15:20.909Z" },
 ]
 
 [[package]]
@@ -375,9 +375,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "genblaze-core", specifier = ">=0.2.8,<0.3" },
-    { name = "genblaze-nvidia", extras = ["chat"], specifier = ">=0.2.1,<0.3" },
-    { name = "genblaze-s3", specifier = ">=0.3,<0.4" },
+    { name = "genblaze-core", specifier = ">=0.3.2,<0.4" },
+    { name = "genblaze-nvidia", extras = ["chat"], specifier = ">=0.3,<0.4" },
+    { name = "genblaze-s3", specifier = ">=0.3.2,<0.4" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "pydantic-settings", specifier = ">=2.4" },
     { name = "python-multipart", specifier = ">=0.0.9" },

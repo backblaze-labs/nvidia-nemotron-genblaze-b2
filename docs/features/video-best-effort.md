@@ -15,11 +15,10 @@ In `repo/pipelines.py::build_media_pipeline`:
 ```python
 if include_video and video_model:
     p = p.step(
-        NvidiaVideoProvider(api_key=settings.nvidia_api_key),
+        NvidiaVideoProvider(api_key=settings.nvidia_api_key, output_dir=out_dir),
         model=video_model,
         modality=Modality.VIDEO,
-        prompt=chapters[0].get("image_prompt", "") if chapters else "",
-        aspect_ratio="16:9",
+        prompt=spec.recommended_video_prompt or spec.takeaways[0].illustration_prompt,
     )
 ```
 
@@ -27,23 +26,43 @@ The video step is appended only when the request asks for it — there
 is no built-in fallback model rotation, by design (the alternative
 free video models are also gated).
 
+## Why Stage B disables preflight
+
+`genblaze-core` 0.3.0 turned `Pipeline(preflight=True)` on by default —
+each step's model gets parallel-validated (NATIVE catalog for chat,
+empty-payload PARTIAL probe for image/audio/video) **before any step
+runs**. A single retired NIM slug (e.g., a user-overridden video model
+that NVIDIA has retired) would raise `ProviderError(MODEL_ERROR)`
+upfront and blank the entire media stage — including the image and
+music fan-out that would have succeeded. Stage B therefore constructs
+`Pipeline(..., preflight=False)` on purpose so per-step drift surfaces
+inline. Stage A keeps the preflight gate on (single chat step, so
+all-or-nothing is the right semantics). The regression test in
+`tests/test_pipelines_smoke.py::test_media_pipeline_disables_preflight_for_best_effort_semantics`
+pins this carve-out.
+
+> Note on auth gating: the empty-payload probe maps 401/403 to
+> `LiveProbeResult.UNKNOWN` rather than `DEAD`, so even with preflight
+> on, *auth* gating would not trip the gate — only true retirements
+> (404s) do. The preflight=False carve-out is specifically about
+> retired slugs that would otherwise short-circuit Stage B.
+
 ## How AUTH_FAILURE is surfaced
 
 When NVIDIA returns 401/403, `NvidiaVideoProvider.generate()` raises
 `ProviderError(error_code=ProviderErrorCode.AUTH_FAILURE)`.
 
-For the **non-streaming** endpoint (`POST /runs`), as of `genblaze-core`
-0.2.5 the pipeline raises `PipelineError` when any step fails (we pass
-`raise_on_failure=True` to opt in early; default flips in 0.4.0). The
-exception carries the partial `PipelineResult`, so we discriminate
-`AUTH_FAILURE` via the failed step's typed `error_code`:
+For the **non-streaming** endpoint (`POST /runs`), Stage A passes
+`raise_on_failure=True` so any chat-step failure raises `PipelineError`
+carrying the partial `PipelineResult`. We discriminate `AUTH_FAILURE`
+via the failed step's typed `error_code`:
 
 ```python
 try:
-    return _run_story(req, allow_video=True)
+    return _run_briefing(req, allow_video=True)
 except PipelineError as e:
     if _pipeline_error_code(e) == ProviderErrorCode.AUTH_FAILURE and req.include_video:
-        payload = _run_story(req, allow_video=False)
+        payload = _run_briefing(req, allow_video=False)
         payload["video_skipped"] = "auth_required"
         return payload
     raise HTTPException(...)
@@ -59,11 +78,11 @@ stamps `video_skipped: "auth_required"` on the response.
 For the **SSE** endpoint (`POST /runs/stream`):
 
 There is no mid-stream auto-retry, but the failure IS surfaced as a typed
-terminal event. `Pipeline.stream(raise_on_failure=True)` in
-`genblaze-core` 0.2.5 re-raises after the worker thread finishes (the
-event stream forwards into `Pipeline.run()` and propagates via an
-exception box), so `services/api/app/main.py::stream_story` catches
-`PipelineError` and emits:
+terminal event. `Pipeline.stream(raise_on_failure=True)` re-raises after
+the worker thread finishes (the event stream forwards into
+`Pipeline.run()` and propagates via an exception box), so
+`services/api/app/main.py::stream_briefing` catches `PipelineError` and
+emits:
 
 ```
 event: error
@@ -82,7 +101,7 @@ fall back to the synchronous `/runs` endpoint which DOES auto-retry
 When NVIDIA grants Cosmos access to your `nvapi-` key, no code change
 is needed. The same `include_video: true` request now succeeds; the
 video step's asset URL appears in `media_run.steps` and the UI
-renders a `<video>` element below the chapters.
+renders a `<video>` element below the takeaways.
 
 ## Why not auto-detect Cosmos access at startup?
 

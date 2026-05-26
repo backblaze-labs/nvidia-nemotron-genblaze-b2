@@ -42,7 +42,12 @@ class Settings(BaseSettings):
     nemotron_image_model: str = Field(
         default="black-forest-labs/flux.1-schnell", alias="NEMOTRON_IMAGE_MODEL"
     )
-    nemotron_tts_model: str = Field(default="nvidia/riva-tts", alias="NEMOTRON_TTS_MODEL")
+    # `nvidia/riva-tts` was retired upstream; `genblaze-nvidia` 0.3.0 surfaces
+    # it as NOT_FOUND at preflight. `nvidia/magpie-tts-multilingual` is the
+    # canonical replacement (matches the `nvidia-audio-voice` family pattern).
+    nemotron_tts_model: str = Field(
+        default="nvidia/magpie-tts-multilingual", alias="NEMOTRON_TTS_MODEL"
+    )
     nemotron_music_model: str = Field(default="nvidia/fugatto", alias="NEMOTRON_MUSIC_MODEL")
     nemotron_video_model: str = Field(
         default="nvidia/cosmos-2.0-diffusion-text2world", alias="NEMOTRON_VIDEO_MODEL"

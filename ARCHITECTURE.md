@@ -17,8 +17,8 @@
 +--------|----------------------------------------------------+
          v
 +--------------------------------------------------------------+
-|  genblaze-core 0.2.8  +  genblaze-nvidia 0.2.1  +            |
-|  genblaze-s3 0.3.0                                           |
+|  genblaze-core 0.3.2  +  genblaze-nvidia 0.3.0  +            |
+|  genblaze-s3 0.3.2                                           |
 |    Pipeline + Steps + Tracers                                |
 |    NvidiaChatProvider (multimodal)                           |
 |    NvidiaImage/Audio/VideoProvider                           |
@@ -42,9 +42,10 @@
   exceptions in `app/main.py`: `genblaze_core.exceptions`
   (PipelineError + ProviderError ARE the contract surfaced to
   clients), `genblaze_core.models.enums` (ProviderErrorCode for the
-  AUTH_FAILURE catch), and `genblaze_core.models.asset` (Asset
+  AUTH_FAILURE catch), `genblaze_core.models.asset` (Asset
   reconstructed from `BriefingRequest` for the `external_inputs=`
-  argument on the chat step).
+  argument on the chat step), and `genblaze_core.providers`
+  (DiscoveryStatus discriminates `/models` responses post 0.3.0).
 - **`repo/pipelines.py` stays compact.** A structural test caps the
   file size so you can read the entire pipeline definition in one
   sitting.

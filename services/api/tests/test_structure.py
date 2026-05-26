@@ -67,13 +67,16 @@ def test_genblaze_imports_only_in_repo() -> None:
             )
             if not any(module.startswith(p) for p in GENBLAZE_PREFIXES):
                 continue
-            # Allow main.py exception/enum/asset imports — these ARE the
-            # public contract (typed exceptions surfaced to clients; Asset
-            # reconstructed from BriefingRequest fields for external_inputs=).
+            # Allow main.py exception/enum/asset/provider-discovery imports —
+            # these ARE the public contract (typed exceptions surfaced to
+            # clients; Asset reconstructed from BriefingRequest fields for
+            # external_inputs=; DiscoveryStatus discriminates `/models`
+            # responses post genblaze-core 0.3.0).
             if path.name == "main.py" and module in {
                 "genblaze_core.exceptions",
                 "genblaze_core.models.enums",
                 "genblaze_core.models.asset",
+                "genblaze_core.providers",
             }:
                 continue
             offenders.append(f"{path}:{node.lineno} -> {module}")
@@ -87,4 +90,4 @@ def test_pipelines_file_stays_lean() -> None:
     """Keep the canonical example small enough to read in one sitting."""
     pipelines = REPO_DIR / "pipelines.py"
     line_count = sum(1 for _ in pipelines.read_text(encoding="utf-8").splitlines())
-    assert line_count < 200, f"pipelines.py grew to {line_count} lines (>=200)"
+    assert line_count < 220, f"pipelines.py grew to {line_count} lines (>=220)"

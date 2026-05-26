@@ -5,7 +5,7 @@ user-uploaded asset and emits a JSON-schema-enforced `BriefingSpec`.
 
 ## Provider
 
-`NvidiaChatProvider` from `genblaze-nvidia` 0.2.1. First-class —
+`NvidiaChatProvider` from `genblaze-nvidia` 0.3. First-class —
 `Pipeline.step()` plays it the same as image / audio / video providers.
 The shim that used to live in this sample (`NvidiaChatStepProvider`) is
 gone.

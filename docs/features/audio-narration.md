@@ -1,7 +1,10 @@
-# Audio — narration (Riva TTS)
+# Audio — narration (Magpie TTS)
 
 Three narration tracks, one per takeaway, fanned out in parallel via
-`NvidiaAudioProvider` against `nvidia/riva-tts`.
+`NvidiaAudioProvider` against `nvidia/magpie-tts-multilingual`. (The
+older `nvidia/riva-tts` slug was retired upstream; `genblaze-nvidia`
+0.3.0 surfaces it as `NOT_FOUND` at preflight with Magpie as the
+recommended replacement.)
 
 ## The shape
 
@@ -14,7 +17,7 @@ parallel with the three illustrations.
 for ch in spec.takeaways:
     p = p.step(
         NvidiaAudioProvider(api_key=api_key),
-        model=tts_model,                 # nvidia/riva-tts by default
+        model=tts_model,                 # nvidia/magpie-tts-multilingual by default
         modality=Modality.AUDIO,
         prompt=ch.narration,
     )
@@ -22,21 +25,21 @@ for ch in spec.takeaways:
 
 ## Voice selection
 
-Riva ships a default English voice. To pick another, pass `voice`
+Magpie ships a default voice per locale. To pick another, pass `voice`
 through the kwargs — `NvidiaAudioProvider.normalize_params()` forwards
 unknown kwargs into the NVIDIA payload. Example:
 
 ```python
 p = p.step(
     NvidiaAudioProvider(api_key=api_key),
-    model="nvidia/riva-tts",
+    model="nvidia/magpie-tts-multilingual",
     modality=Modality.AUDIO,
     prompt=ch.narration,
     voice="English-US.Female-1",
 )
 ```
 
-The full voice list lives in NVIDIA's NIM model card for Riva.
+The full voice list lives in NVIDIA's NIM model card for Magpie TTS.
 
 ## Where the assets land
 

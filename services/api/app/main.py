@@ -23,6 +23,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from genblaze_core.exceptions import GenblazeError, PipelineError, ProviderError, StorageError
 from genblaze_core.models.asset import Asset
 from genblaze_core.models.enums import ProviderErrorCode
+from genblaze_core.providers import DiscoveryStatus, DiscoverySupport
 
 from app.config import settings
 from app.repo.pipelines import (
@@ -79,7 +80,7 @@ app = FastAPI(title="nvidia-nemotron-genblaze-b2", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3737"],
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
@@ -97,7 +98,7 @@ async def _genblaze_error_handler(_: Request, exc: GenblazeError) -> JSONRespons
     write, etc. Without this handler those bubble up as bare 500s with
     "Internal Server Error" — opaque to API consumers.
 
-    `StorageError` carries typed fields (genblaze-core 0.2.8 / s3 0.3.0):
+    `StorageError` carries typed fields (genblaze-s3 0.3.x):
     `error_code`, `status_code`, `is_retriable`, `operation`, `request_id`.
     We surface them when present so observability tools can classify
     upstream failures without parsing the message string.
@@ -158,9 +159,10 @@ def _input_asset(req: BriefingRequest) -> Asset:
 def _run_briefing(req: BriefingRequest, *, allow_video: bool) -> dict[str, Any]:
     """Execute Stage A then Stage B and return a JSON-ready response payload.
 
-    Uses 0.2.5+ `raise_on_failure=True` so any step failure raises
-    `PipelineError` carrying the partial `PipelineResult` — we don't have to
-    inspect `run.status` ourselves.
+    `raise_on_failure=True` on Stage A turns any step failure into a
+    `PipelineError` carrying the partial `PipelineResult`, so we don't have
+    to inspect `run.status` ourselves. Stage B uses `raise_on_failure=False`
+    + `Pipeline(preflight=False)` so individual step drift surfaces inline.
     """
     models = _resolve_models(req)
     spec_pipe = build_briefing_spec_pipeline(
@@ -198,9 +200,9 @@ def _run_briefing(req: BriefingRequest, *, allow_video: bool) -> dict[str, Any]:
         # The AUTH_FAILURE branch in `run_briefing` overwrites this to
         # "auth_required"; the happy path leaves it None.
         "video_skipped": None,
-        # 0.2.5+ `Pipeline.estimated_cost()` — None is the honest answer for
-        # NVIDIA's free tier (no published per-request pricing). The field is
-        # always present so the UI can render "varies" without a key check.
+        # `Pipeline.estimated_cost()` returns None for slugs without a
+        # registered pricing strategy (the NVIDIA free tier case). The field
+        # is always present so the UI can render "varies" without a key check.
         "estimated_cost_usd": {
             "spec": _serialize_cost(spec_pipe.estimated_cost()),
             "media": _serialize_cost(media_pipe.estimated_cost()),
@@ -230,18 +232,40 @@ def health() -> dict[str, str]:
 
 @app.get("/models")
 def models() -> dict[str, list[dict[str, Any]]]:
-    """0.2.5+ discovery: `provider.list_models()` per modality.
+    """Per-modality model catalog — drives the UI model picker.
 
-    Frontend uses this to populate the model picker instead of a hardcoded
-    constant. Returns `model_id` and the modality enum value — anything else
-    on `ModelSpec` is an internal detail callers shouldn't depend on.
+    genblaze-core 0.3.0 stopped shipping per-slug spec dictionaries, so
+    `provider.list_models()` returns only user-registered specs (empty here).
+    The two new surfaces:
+      - NATIVE providers (chat): `discover_models()` queries the upstream
+        `/v1/models` endpoint. Result is cached single-flight, 1-hour TTL.
+      - PARTIAL/NONE providers (image/audio/video): each `ModelFamily`
+        carries an `example_slugs` tuple — the curated short-list the
+        connector ships for that modality.
+
+    Discovery is best-effort: on transport failure or unsupported tier we
+    fall back to family `example_slugs` so the picker is never empty.
     """
     out: dict[str, list[dict[str, Any]]] = {}
     for modality, provider in nvidia_providers().items():
-        out[modality] = [
-            {"id": spec.model_id, "modality": spec.modality.value}
-            for spec in provider.list_models()
-        ]
+        slugs: set[str] = set()
+        if provider.discovery_support is DiscoverySupport.NATIVE:
+            try:
+                result = provider.discover_models()
+                if result.status is DiscoveryStatus.OK:
+                    slugs = set(result.slugs)
+            except ProviderError as exc:
+                # Auth / config — operator-actionable. WARN so a misprovisioned
+                # NVIDIA_API_KEY doesn't masquerade as a healthy (empty) picker.
+                log.warning("discover_models(%s) provider error: %s", modality, exc)
+            except Exception as exc:  # noqa: BLE001 — transient transport: degrade to families
+                log.debug("discover_models(%s) transport error: %s", modality, exc)
+        if not slugs:
+            # PARTIAL/NONE providers (and NATIVE fallback on discovery failure)
+            # surface the curated short-list each ModelFamily ships.
+            for family in provider.models.families:
+                slugs.update(family.example_slugs)
+        out[modality] = [{"id": s, "modality": modality} for s in sorted(slugs)]
     return out
 
 
@@ -295,10 +319,11 @@ async def upload(
 def run_briefing(req: BriefingRequest) -> dict[str, Any]:
     """One-shot run. Returns when both pipelines finish.
 
-    AUTH_FAILURE handling reads through `PipelineError` (0.2.5+) — the new
-    contract carries the partial result so we still get the failed step's
-    `error_code`. The `ProviderError` catch is the defensive fallback for
-    paths the new exception doesn't cover.
+    AUTH_FAILURE handling reads through `PipelineError` — the contract
+    carries the partial `PipelineResult` so we still recover the failed
+    step's typed `error_code`. The `ProviderError` catch is the defensive
+    fallback for paths where the failure surfaces directly (e.g., Stage A
+    preflight `MODEL_ERROR` from genblaze-core 0.3.0's auto-validation).
     """
     try:
         return _run_briefing(req, allow_video=True)
