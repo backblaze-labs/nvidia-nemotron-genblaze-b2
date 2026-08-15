@@ -15,7 +15,7 @@ import mimetypes
 from collections.abc import AsyncIterator, Iterator
 from contextlib import asynccontextmanager
 from decimal import Decimal
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -271,8 +271,8 @@ def models() -> dict[str, list[dict[str, Any]]]:
 
 @app.post("/uploads", response_model=UploadResponse)
 async def upload(
-    file: UploadFile = File(...),
-    media_type: str | None = Form(default=None),
+    file: Annotated[UploadFile, File()],
+    media_type: Annotated[str | None, Form()] = None,
 ) -> UploadResponse:
     """Stage a user-supplied asset to B2 and return durable URL + sha256.
 
@@ -353,12 +353,12 @@ def _to_sse(events: Iterator[Any]) -> Iterator[bytes]:
     """Wrap Genblaze stream events in the text/event-stream wire format."""
     for ev in events:
         body = ev.model_dump(mode="json") if hasattr(ev, "model_dump") else ev
-        yield f"event: {type(ev).__name__}\ndata: {json.dumps(body)}\n\n".encode("utf-8")
+        yield f"event: {type(ev).__name__}\ndata: {json.dumps(body)}\n\n".encode()
 
 
 def _sse_event(name: str, payload: dict[str, Any]) -> bytes:
     """Emit a custom SSE event with a JSON-serializable payload."""
-    return f"event: {name}\ndata: {json.dumps(payload)}\n\n".encode("utf-8")
+    return f"event: {name}\ndata: {json.dumps(payload)}\n\n".encode()
 
 
 @app.post("/runs/stream")
