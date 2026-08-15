@@ -45,7 +45,7 @@ def test_media_pipeline_builds_with_three_takeaways() -> None:
         video_model=None,
     )
     # 3 image + 3 audio + 1 music = 7 steps when video is off.
-    assert len(pipe._steps) == 7  # noqa: SLF001 — internal pipeline state, no public step count yet
+    assert len(pipe._steps) == 7
 
 
 def test_media_pipeline_appends_video_when_requested() -> None:
@@ -72,7 +72,7 @@ def test_media_pipeline_appends_video_when_requested() -> None:
         video_model="nvidia/cosmos-2.0-diffusion-text2world",
     )
     # 3 image + 3 audio + 1 music + 1 video = 8 steps
-    assert len(pipe._steps) == 8  # noqa: SLF001 — internal pipeline state, no public step count yet
+    assert len(pipe._steps) == 8
 
 
 def test_pipeline_name_carries_provenance() -> None:
@@ -103,7 +103,7 @@ def test_briefing_spec_pipeline_attaches_external_input() -> None:
         instruction="describe",
         chat_model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
     )
-    deferred = pipe._steps[0]  # noqa: SLF001 — internal pipeline state
+    deferred = pipe._steps[0]
     # Caller-held assets land on the deferred step's external_inputs
     # field (defensive copy is taken at construction time).
     assert deferred.external_inputs == [asset]
@@ -139,7 +139,7 @@ def test_media_pipeline_disables_preflight_for_best_effort_semantics() -> None:
     )
     # `getattr` defensively so an SDK rename surfaces as a clear "missing
     # attribute" message rather than an opaque `AttributeError` traceback.
-    assert getattr(pipe, "_preflight", None) is False  # noqa: SLF001
+    assert getattr(pipe, "_preflight", None) is False
 
 
 def test_briefing_request_validates() -> None:
@@ -264,7 +264,7 @@ def test_briefing_spec_pipeline_params_canonical_hashable() -> None:
         instruction=None,
         chat_model="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
     )
-    step = pipe._steps[0]  # noqa: SLF001 — internal pipeline state
+    step = pipe._steps[0]
     canonical_hash(step.params)  # must not raise
 
 
