@@ -6,10 +6,9 @@ requires-python = ">=3.11"
 dependencies = [
   # 0.3.x preflight rationale: docs/features/video-best-effort.md.
   "genblaze-core>=0.3.6,<0.3.8",
-  # 0.3.2 floor: better B2_REGION misconfig errors via for_backblaze()'s
-  # 403→region-probe path (the only 0.3.2 surface this sample actually hits).
+  # 0.3.6 floor: keeps genblaze-s3 aligned with the patched 0.3.x floor.
   "genblaze-s3>=0.3.6,<0.4",
-  # No 0.3.x patch shipped on this connector at time of pin; stays at floor.
+  # 0.3.0 floor: no newer 0.3.x NVIDIA patch is required by this sample.
   "genblaze-nvidia[chat]>=0.3,<0.3.2",
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
