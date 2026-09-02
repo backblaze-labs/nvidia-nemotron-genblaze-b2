@@ -404,9 +404,10 @@ def stream_briefing(req: BriefingRequest) -> StreamingResponse:
                         spec_result = ev.result
             except PipelineError as e:
                 code = _pipeline_error_code(e)
+                log.exception("briefing spec pipeline failed")
                 yield _sse_event("error", {
                     "code": code.value if code else "BRIEFING_STAGE_FAILED",
-                    "msg": e.failed_step_error or str(e),
+                    "msg": "Briefing generation failed.",
                 })
                 return
             if spec_result is None:
@@ -451,9 +452,10 @@ def stream_briefing(req: BriefingRequest) -> StreamingResponse:
                 },
             })
         except GenblazeError as exc:
+            log.exception("briefing stream failed")
             yield _sse_event("error", {
                 "code": type(exc).__name__,
-                "msg": str(exc),
+                "msg": "Briefing stream failed.",
             })
 
     return StreamingResponse(gen(), media_type="text/event-stream")
